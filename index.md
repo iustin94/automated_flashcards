@@ -22,10 +22,10 @@ First step, was to open the browser. To do this, I imported the webdriver from s
 ![image](https://user-images.githubusercontent.com/13846875/149632984-ae759824-4097-47fb-a202-890a93d1d25a.png)
 
 ```
-  from selenium import webdriver
+    from selenium import webdriver
   
-  driver = webdriver.Firefox()
-  driver.get(MY_WEB_LINK)
+    driver = webdriver.Firefox()
+    driver.get(MY_WEB_LINK)
 ```
 
 
@@ -36,19 +36,19 @@ After the web page is loaded, I will normally look for the login button, input m
 ![image](https://user-images.githubusercontent.com/13846875/149633049-16f7007c-fa73-4ad2-8f2f-f44782353cd8.png)
 
 ```
-  login_btn = driver.find_element(By.CLASS_NAME, "login-button")
-  action = ActionChains(driver).move_to_element(login_btn).click()
-  action.perform()
+    login_btn = driver.find_element(By.CLASS_NAME, "login-button")
+    action = ActionChains(driver).move_to_element(login_btn).click()
+    action.perform()
 
-  driver.find_element(By.ID, "email").send_keys("email")
-  driver.find_element(By.ID, "password").send_keys("password")
+    driver.find_element(By.ID, "email").send_keys("email")
+    driver.find_element(By.ID, "password").send_keys("password")
 
-  time.sleep(1)
-  login_btn = driver.find_element(By.XPATH, "//div[@label='Log In']")
-  action = ActionChains(driver).move_to_element(login_btn).click()
-  action.perform()
+    time.sleep(1)
+    login_btn = driver.find_element(By.XPATH, "//div[@label='Log In']")
+    action = ActionChains(driver).move_to_element(login_btn).click()
+    action.perform()
 
-  WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, "detail-scroll-element")))
+    WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, "detail-scroll-element")))
 
 ```
 
@@ -58,31 +58,31 @@ After the whole loging process happened, finally I got to program the logic for 
 ![image](https://user-images.githubusercontent.com/13846875/149633084-cb70ae74-dec6-4138-9cb3-e2d3333fc8a6.png)
 
 ```
-# Create new deck
-driver.execute_script('document.getElementById("detail-scroll-element").scrollTo(0, document.getElementById("detail-scroll-element").scrollHeight)')
+  # Create new deck
+  driver.execute_script('document.getElementById("detail-scroll-element").scrollTo(0, document.getElementById("detail-scroll-element").scrollHeight)')
 ```
 
 Now that I could see the create new deck button, I can click it, and fill the modal that pops up with a name and click continue, in the same way as with the login modal. This creates a new deck in my list, and a button "Add cards is not available for it to take me to the next view. I click the button, then wait until the element with id "question" is in view. That's when I know that I am in the add cards view.
 
 ```
-time.sleep(1)
-new_deck_button = driver.find_element(By.CLASS_NAME, "create-new-deck-row")
-action = ActionChains(driver).move_to_element(new_deck_button).click()
-action.perform()
+  time.sleep(1)
+  new_deck_button = driver.find_element(By.CLASS_NAME, "create-new-deck-row")
+  action = ActionChains(driver).move_to_element(new_deck_button).click()
+  action.perform()
 
-driver.find_element(By.ID, "new-deck-name").send_keys(deck_name)
+  driver.find_element(By.ID, "new-deck-name").send_keys(deck_name)
 
-time.sleep(1)
-continue_btn = driver.find_element(By.XPATH, "//div[@label='Continue']")
-action = ActionChains(driver).move_to_element(continue_btn).click()
-action.perform()
+  time.sleep(1)
+  continue_btn = driver.find_element(By.XPATH, "//div[@label='Continue']")
+  action = ActionChains(driver).move_to_element(continue_btn).click()
+  action.perform()
 
-time.sleep(1)
-add_cards_btn = driver.find_element(By.XPATH, "//div[@label='Add Cards']")
-action = ActionChains(driver).move_to_element(add_cards_btn).click()
-action.perform()
+  time.sleep(1)
+  add_cards_btn = driver.find_element(By.XPATH, "//div[@label='Add Cards']")
+  action = ActionChains(driver).move_to_element(add_cards_btn).click()
+  action.perform()
 
-WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, "question")))
+  WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, "question")))
 
 ```
 
@@ -92,21 +92,21 @@ Now that I made it to the add cards view, it's pretty much more of the same thin
 ![image](https://user-images.githubusercontent.com/13846875/149633104-6f064b26-3ffe-4e63-af7a-4857671a4062.png)
 
 ```
-for question, answer in zip(questions, answers):
-    question_field = driver.find_element(By.XPATH, "//textarea[@id='question']").send_keys(question)
-    answer_field = driver.find_element(By.XPATH, "//textarea[@id='answer']").send_keys(answer)
+    for question, answer in zip(questions, answers):
+      question_field = driver.find_element(By.XPATH, "//textarea[@id='question']").send_keys(question)
+      answer_field = driver.find_element(By.XPATH, "//textarea[@id='answer']").send_keys(answer)
 
-    WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@label='Save']")))
-    time.sleep(1)
-    save_btn = driver.find_element(By.XPATH, "//div[@label='Save']")
-    action = ActionChains(driver).move_to_element(save_btn).click()
-    action.perform()
+      WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@label='Save']")))
+      time.sleep(1)
+      save_btn = driver.find_element(By.XPATH, "//div[@label='Save']")
+      action = ActionChains(driver).move_to_element(save_btn).click()
+      action.perform()
 
-    WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@class='add-card-option create-card-option']")))
-    time.sleep(1)
-    save_btn = driver.find_element(By.XPATH, "//div[@class='add-card-option create-card-option']")
-    action = ActionChains(driver).move_to_element(save_btn).click()
-    action.perform()
+      WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@class='add-card-option create-card-option']")))
+      time.sleep(1)
+      save_btn = driver.find_element(By.XPATH, "//div[@class='add-card-option create-card-option']")
+      action = ActionChains(driver).move_to_element(save_btn).click()
+      action.perform()
 ```
 
 After the script finishes I can call quit on the web browser and that's it. Job done. It took me aproximatelly 4 hours to learn how to use this framework and program the script. Compare that to same amount of tedious work done to input these words and having to do that every time I want to relearn these things. Ironically the website has a solution for uploading these things in bulk for you, however I noticed that feature too late.
