@@ -19,36 +19,101 @@ Once everything was set up correctly, all I had to do was to program the logic a
 ### Opening the browser
 First step, was to open the browser. To do this, I imported the webdriver from selenium, initialized my browser, and gave it the link to my webpage where I wanted to navigate to.
 
+![image](https://user-images.githubusercontent.com/13846875/149632984-ae759824-4097-47fb-a202-890a93d1d25a.png)
 
-```from selenium import webdriver
+```
+  from selenium import webdriver
   
   driver = webdriver.Firefox()
-  driver.get("http://www.brainscape.com")
-
-    
-
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
+  driver.get(MY_WEB_LINK)
 ```
 
-For more details see [Basic writing and formatting syntax](https://docs.github.com/en/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax).
 
-### Jekyll Themes
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/iustin94/automated_flashcards/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
+### Loging in
+After the web page is loaded, I will normally look for the login button, input my credentials and click the log in button. All the individual elements from the webpage can be referenced by using the **find_element** method of the web driver class. You can find the elements based on most if not all the html attributes. Due to the nature of web-development, this is a higly customizable part where manual work of identifying these elements and properly referencing them comes into play. It took a bit of time to get it right, but finally I was able to log in, input data and trigger a login. One thing to pay attention to is to rendering times. Actions take time to be processed by the browser and the service you are interacting with while your script runs in a split second. Because of this my script crashed, it was trying to click buttons that where not there yet. To mitigate this issue, I adde manual waiting times of 1 second, at all places where a user would normally wait for a response from the website. After the log in action, I added an extra long wait on the web driver, basically to wait for the web request to be processed by the server, which takes time.
 
-### Support or Contact
+![image](https://user-images.githubusercontent.com/13846875/149633049-16f7007c-fa73-4ad2-8f2f-f44782353cd8.png)
 
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+```
+  login_btn = driver.find_element(By.CLASS_NAME, "login-button")
+  action = ActionChains(driver).move_to_element(login_btn).click()
+  action.perform()
+
+  driver.find_element(By.ID, "email").send_keys("email")
+  driver.find_element(By.ID, "password").send_keys("password")
+
+  time.sleep(1)
+  login_btn = driver.find_element(By.XPATH, "//div[@label='Log In']")
+  action = ActionChains(driver).move_to_element(login_btn).click()
+  action.perform()
+
+  WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, "detail-scroll-element")))
+
+```
+
+### Creating my test flashcard deck
+After the whole loging process happened, finally I got to program the logic for creating my flashcards deck. In the first line, I encountered the issue that my list of present decks whas long enough that the button for creatinga new deck was out of sight for a user. For this, I had to use javascript to scroll down in the list view, so I can expose the save button. This is all done in the first line of the next block by finding the list item, taking it's total height, and scrolling by that value down.
+
+![image](https://user-images.githubusercontent.com/13846875/149633084-cb70ae74-dec6-4138-9cb3-e2d3333fc8a6.png)
+
+```
+# Create new deck
+driver.execute_script('document.getElementById("detail-scroll-element").scrollTo(0, document.getElementById("detail-scroll-element").scrollHeight)')
+```
+
+Now that I could see the create new deck button, I can click it, and fill the modal that pops up with a name and click continue, in the same way as with the login modal. This creates a new deck in my list, and a button "Add cards is not available for it to take me to the next view. I click the button, then wait until the element with id "question" is in view. That's when I know that I am in the add cards view.
+
+```
+time.sleep(1)
+new_deck_button = driver.find_element(By.CLASS_NAME, "create-new-deck-row")
+action = ActionChains(driver).move_to_element(new_deck_button).click()
+action.perform()
+
+driver.find_element(By.ID, "new-deck-name").send_keys(deck_name)
+
+time.sleep(1)
+continue_btn = driver.find_element(By.XPATH, "//div[@label='Continue']")
+action = ActionChains(driver).move_to_element(continue_btn).click()
+action.perform()
+
+time.sleep(1)
+add_cards_btn = driver.find_element(By.XPATH, "//div[@label='Add Cards']")
+action = ActionChains(driver).move_to_element(add_cards_btn).click()
+action.perform()
+
+WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, "question")))
+
+```
+
+### Adding my cards
+Now that I made it to the add cards view, it's pretty much more of the same things I did before, fill in two text fields, wait for the view to updated and make the "Save" button available, click sayd save button, create new card, and repeat indeffinatelly. This all being done in a for loop over a list of defined questions and answers that I created at the top of the script.
+
+![image](https://user-images.githubusercontent.com/13846875/149633104-6f064b26-3ffe-4e63-af7a-4857671a4062.png)
+
+```
+for question, answer in zip(questions, answers):
+    question_field = driver.find_element(By.XPATH, "//textarea[@id='question']").send_keys(question)
+    answer_field = driver.find_element(By.XPATH, "//textarea[@id='answer']").send_keys(answer)
+
+    WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@label='Save']")))
+    time.sleep(1)
+    save_btn = driver.find_element(By.XPATH, "//div[@label='Save']")
+    action = ActionChains(driver).move_to_element(save_btn).click()
+    action.perform()
+
+    WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//div[@class='add-card-option create-card-option']")))
+    time.sleep(1)
+    save_btn = driver.find_element(By.XPATH, "//div[@class='add-card-option create-card-option']")
+    action = ActionChains(driver).move_to_element(save_btn).click()
+    action.perform()
+```
+
+After the script finishes I can call quit on the web browser and that's it. Job done. It took me aproximatelly 4 hours to learn how to use this framework and program the script. Compare that to same amount of tedious work done to input these words and having to do that every time I want to relearn these things. Ironically the website has a solution for uploading these things in bulk for you, however I noticed that feature too late.
+
+Now I can go play guitar while this does it thing!
+![Demo](https://github.com/iustin94/automated_flashcards/blob/main/demo.gif?raw=true)
+
+
+# Takeaways
+Selenium is a reall good tool for automating browser interactions. I'll deffinatelly look to use it more for automating UI tests for general usecases of applications. On top of this, the ability to automate administrative tasks like this is very satisfying. You can automate basically anything. The drawback is that it's all done through the front-end layer of a website so your implementations might break anytime due to changes in the websites front-end, the advantage is that it is a very fast way of making something work ar tweek it along the way.
