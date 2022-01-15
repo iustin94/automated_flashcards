@@ -173,5 +173,7 @@ for question, answer in zip(questions, answers):
     action = ActionChains(driver).move_to_element(save_btn).click()
     action.perform()
 
+    driver.execute_script('document.getElementById("deck-card-list").scrollTo(0, document.getElementById("deck-card-list").scrollHeight)')
+
 
 
